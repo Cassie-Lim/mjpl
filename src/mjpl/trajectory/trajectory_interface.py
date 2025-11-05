@@ -28,7 +28,7 @@ class TrajectoryGenerator(ABC):
     """Abstract base class for generating trajectories."""
 
     @abstractmethod
-    def generate_trajectory(self, waypoints: list[np.ndarray]) -> Trajectory | None:
+    def generate_trajectory(self, waypoints: list[np.ndarray]) -> Trajectory:
         """Generate a trajectory.
 
         Args:

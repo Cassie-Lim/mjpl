@@ -9,11 +9,12 @@ from .tree import Node, Tree
 def smooth_path(
     waypoints: list[np.ndarray],
     constraints: list[Constraint],
-    collision_interval_check: tuple[float, CollisionConstraint] | None = None,
+    collision_interval_check: tuple[float, CollisionConstraint] = None,
     eps: float = 0.05,
     num_tries: int = 100,
-    seed: int | None = None,
+    seed: int = None,
     sparse: bool = False,
+    q_idx = None
 ) -> list[np.ndarray]:
     """Smooth a path subject to constraints.
 
@@ -59,7 +60,7 @@ def smooth_path(
         # constraints.
         tree = Tree(Node(smoothed_path[start]))
         q_reached = _constrained_extend(
-            smoothed_path[end], tree, eps, constraints, collision_interval_check
+            smoothed_path[end], tree, eps, constraints, collision_interval_check, q_idx=q_idx
         )
         if not np.array_equal(q_reached, smoothed_path[end]):
             continue
@@ -107,8 +108,9 @@ def _constrained_extend(
     tree: Tree,
     eps: float,
     constraints: list[Constraint],
-    collision_interval_check: tuple[float, CollisionConstraint] | None = None,
+    collision_interval_check: tuple[float, CollisionConstraint] = None,
     equality_threshold: float = 1e-8,
+    q_idx= None
 ) -> np.ndarray:
     """Extend a tree towards a target configuration, subject to constraints.
 
@@ -141,7 +143,7 @@ def _constrained_extend(
             return q
 
         q = _step(q, q_target, eps)
-        q = apply_constraints(q_old, q, constraints)
+        q = apply_constraints(q_old, q, constraints, q_idx)
 
         # Terminate if:
         # - Applying constraints failed

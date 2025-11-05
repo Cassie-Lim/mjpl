@@ -3,9 +3,21 @@ import unittest
 import mujoco
 import numpy as np
 from robot_descriptions.loaders.mujoco import load_robot_description
-
+import mujoco.viewer
 import mjpl
-
+import time
+def visualize_motion(model, q_start, q_goal, steps=50, delay=0.02):
+    data = mujoco.MjData(model)
+    viewer = mujoco.viewer.launch_passive(model, data)
+    for t in np.linspace(0, 1, steps):
+        data.qpos[:] = (1 - t) * q_start + t * q_goal
+        mujoco.mj_forward(model, data)
+        viewer.sync()
+        time.sleep(delay)
+    print("Press [ESC] or close window to finish.")
+    while viewer.is_running():
+        viewer.sync()
+    viewer.close()
 
 class TestMinkIKSolver(unittest.TestCase):
     def test_ik(self):
@@ -68,6 +80,7 @@ class TestMinkIKSolver(unittest.TestCase):
             err = target_pose.minus(actual_site_pose)
             self.assertLessEqual(np.linalg.norm(err[:3]), pos_tolerance)
             self.assertLessEqual(np.linalg.norm(err[3:]), ori_tolerance)
+        visualize_motion(model, q_init, ik_solutions[0])
 
     def test_ik_subset_joints(self):
         model = load_robot_description("ur5e_mj_description")

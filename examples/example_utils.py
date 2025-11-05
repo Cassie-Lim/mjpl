@@ -1,7 +1,7 @@
 import argparse
 
 
-def parse_args(description: str) -> tuple[bool, int | None]:
+def parse_args(description: str) -> tuple[bool, int]:
     parser = argparse.ArgumentParser(
         description=description,
     )

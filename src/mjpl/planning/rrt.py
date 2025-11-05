@@ -12,6 +12,7 @@ from ..inverse_kinematics.ik_solver_interface import IKSolver
 from ..inverse_kinematics.mink_ik_solver import MinkIKSolver
 from .tree import Node, Tree
 from .utils import _combine_paths, _constrained_extend
+from ..utils import qpos_idx
 
 
 class RRT:
@@ -25,10 +26,10 @@ class RRT:
         model: mujoco.MjModel,
         planning_joints: list[str],
         constraints: list[Constraint],
-        collision_interval_check: tuple[float, CollisionConstraint] | None = None,
+        collision_interval_check: tuple[float, CollisionConstraint] = None,
         max_planning_time: float = 10.0,
         epsilon: float = 0.05,
-        seed: int | None = None,
+        seed: int = None,
         goal_biasing_probability: float = 0.05,
     ) -> None:
         """Constructor.
@@ -59,6 +60,8 @@ class RRT:
 
         self.model = model
         self.planning_joints = planning_joints
+        self.q_idx = qpos_idx(self.model, self.planning_joints)
+
         self.constraints = constraints
         self.collision_interval_check = collision_interval_check
         self.max_planning_time = max_planning_time
@@ -71,7 +74,7 @@ class RRT:
         q_init: np.ndarray,
         pose: SE3,
         site: str,
-        solver: IKSolver | None = None,
+        solver: IKSolver = None,
     ) -> list[np.ndarray]:
         """Plan to a pose.
 
@@ -108,7 +111,7 @@ class RRT:
         q_init: np.ndarray,
         poses: list[SE3],
         site: str,
-        solver: IKSolver | None = None,
+        solver: IKSolver = None,
     ) -> list[np.ndarray]:
         """Plan to a list of poses.
 
@@ -134,9 +137,22 @@ class RRT:
             q
             for p in poses
             for q in _solver.solve_ik(p, site, q_init_guess=q_init)
-            if obeys_constraints(q, self.constraints)
+            if obeys_constraints(q, self.constraints, self.q_idx)
         ]
-        return [] if not configs else self.plan_to_configs(q_init, configs)
+        results = {
+            'failure_mode': '',
+            'success': True,
+            'solution': []
+        }
+        if len(configs) == 0:
+            results['failure_mode'] = 'ik_fail_q_target'
+            results['success'] = False
+        else:
+            results['solution'] = self.plan_to_configs(q_init, configs)
+            if len(results['solution']) == 0:
+                results['failure_mode'] = 'rrt_fail'
+                results['success'] = False
+        return results
 
     def plan_to_configs(
         self, q_init: np.ndarray, q_goals: list[np.ndarray]
@@ -151,10 +167,10 @@ class RRT:
             A list of waypoints that form a path from `q_init` to a goal in `q_goals`.
             If a path cannot be found, an empty list is returned.
         """
-        if not obeys_constraints(q_init, self.constraints):
+        if not obeys_constraints(q_init, self.constraints, self.q_idx):
             raise ValueError("q_init is not a valid configuration")
         for q in q_goals:
-            if not obeys_constraints(q, self.constraints):
+            if not obeys_constraints(q, self.constraints, self.q_idx):
                 raise ValueError(
                     f"The following goal config is not a valid configuration: {q}"
                 )
@@ -212,6 +228,7 @@ class RRT:
                 self.epsilon,
                 self.constraints,
                 self.collision_interval_check,
+                q_idx=self.q_idx
             )
             q_reached_b = _constrained_extend(
                 q_reached_a,
@@ -219,6 +236,7 @@ class RRT:
                 self.epsilon,
                 self.constraints,
                 self.collision_interval_check,
+                q_idx=self.q_idx
             )
             if np.array_equal(q_reached_a, q_reached_b):
                 waypoints = _combine_paths(
@@ -233,5 +251,12 @@ class RRT:
             # Swap trees.
             tree_a, tree_b = tree_b, tree_a
             swapped = not swapped
-
+        
         return []
+        # waypoints = _combine_paths(
+        #     start_tree,
+        #     start_tree.nearest_neighbor(q_reached_a),
+        #     goal_tree,
+        #     goal_tree.nearest_neighbor(q_reached_a),
+        # )
+        # return waypoints

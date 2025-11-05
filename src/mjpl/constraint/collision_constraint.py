@@ -29,7 +29,7 @@ class CollisionConstraint(Constraint):
         mujoco.mj_collision(self.model, self.data)
         return self.cr.obeys_ruleset(self.data.contact.geom)
 
-    def apply(self, q_old: np.ndarray, q: np.ndarray) -> np.ndarray | None:
+    def apply(self, q_old: np.ndarray, q: np.ndarray) -> np.ndarray:
         return q if self.valid_config(q) else None
 
 
@@ -52,7 +52,7 @@ class CollisionRuleset:
                 collision. An empty list means no bodies are allowed to be in collision.
         """
         self.model = model
-        self.allowed_collisions: np.ndarray | None = None
+        self.allowed_collisions: np.ndarray = None
         if allowed_collision_bodies:
             # Create a sorted body ID allowed collision matrix. Use array broadcasting
             # for efficient checking between existing and allowed collision pairs. Sort

@@ -48,7 +48,7 @@ def cartesian_plan(
     site: str,
     solver: IKSolver,
     constraints: list[Constraint],
-    collision_interval_check: tuple[float, CollisionConstraint] | None = None,
+    collision_interval_check: tuple[float, CollisionConstraint] = None,
     lin_threshold: float = 0.01,
     ori_threshold: float = 0.1,
 ) -> list[np.ndarray]:

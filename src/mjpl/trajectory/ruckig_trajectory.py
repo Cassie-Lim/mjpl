@@ -13,8 +13,8 @@ class RuckigTrajectoryGenerator(TrajectoryGenerator):
         max_velocity: np.ndarray,
         max_acceleration: np.ndarray,
         max_jerk: np.ndarray,
-        min_velocity: np.ndarray | None = None,
-        min_acceleration: np.ndarray | None = None,
+        min_velocity: np.ndarray = None,
+        min_acceleration: np.ndarray = None,
     ):
         """Constructor.
 
@@ -35,7 +35,7 @@ class RuckigTrajectoryGenerator(TrajectoryGenerator):
         self.min_acceleration = min_acceleration or -max_acceleration
         self.max_jerk = max_jerk
 
-    def generate_trajectory(self, waypoints: list[np.ndarray]) -> Trajectory | None:
+    def generate_trajectory(self, waypoints: list[np.ndarray]) -> Trajectory:
         dof = waypoints[0].size
         otg = Ruckig(dof, self.dt, len(waypoints))
         inp = InputParameter(dof)

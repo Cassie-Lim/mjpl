@@ -79,7 +79,7 @@ def random_config(
     model: mujoco.MjModel,
     q_init: np.ndarray,
     joints: list[str],
-    seed: int | None = None,
+    seed: int = None,
     constraints: list[Constraint] = [],
 ) -> np.ndarray:
     """Generate a random configuration that obeys constraints.
@@ -102,6 +102,7 @@ def random_config(
     q = q_init.copy()
     while True:
         q[q_idx] = rng.uniform(*model.jnt_range.T)[q_idx]
-        q_constrained = apply_constraints(q_init, q, constraints)
+        q_full = q
+        q_constrained = apply_constraints(q_init, q, constraints, q_idx)
         if q_constrained is not None:
-            return q_constrained
+            return q_full

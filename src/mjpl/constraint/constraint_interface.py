@@ -19,7 +19,7 @@ class Constraint(ABC):
         pass
 
     @abstractmethod
-    def apply(self, q_old: np.ndarray, q: np.ndarray) -> np.ndarray | None:
+    def apply(self, q_old: np.ndarray, q: np.ndarray) -> np.ndarray:
         """Apply a constraint to a configuration.
 
         Args:

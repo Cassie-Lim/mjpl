@@ -15,9 +15,17 @@ class JointLimitConstraint(Constraint):
         """
         self.lower = model.jnt_range[:, 0]
         self.upper = model.jnt_range[:, 1]
+    def __init__(self, lower, upper) -> None:
+        """Constructor.
+
+        Args:
+            model: MuJoCo model, which contains the joint limits.
+        """
+        self.lower = lower
+        self.upper = upper
 
     def valid_config(self, q: np.ndarray) -> bool:
         return np.all((q >= self.lower) & (q <= self.upper))
 
-    def apply(self, q_old: np.ndarray, q: np.ndarray) -> np.ndarray | None:
+    def apply(self, q_old: np.ndarray, q: np.ndarray) -> np.ndarray:
         return q if self.valid_config(q) else None

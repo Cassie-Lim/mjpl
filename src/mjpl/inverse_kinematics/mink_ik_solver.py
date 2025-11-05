@@ -7,7 +7,7 @@ from .. import utils
 from ..constraint.constraint_interface import Constraint
 from ..constraint.utils import obeys_constraints
 from .ik_solver_interface import IKSolver
-
+from ..utils import qpos_idx
 
 class MinkIKSolver(IKSolver):
     """Mink implementation of IKSolver."""
@@ -19,7 +19,7 @@ class MinkIKSolver(IKSolver):
         constraints: list[Constraint] = [],
         pos_tolerance: float = 1e-3,
         ori_tolerance: float = 1e-3,
-        seed: int | None = None,
+        seed: int = None,
         max_attempts: int = 1,
         iterations: int = 500,
         qp_solver: str = "daqp",
@@ -58,6 +58,7 @@ class MinkIKSolver(IKSolver):
         self.max_attempts = max_attempts
         self.iterations = iterations
         self.qp_solver = qp_solver
+        self.q_idx = qpos_idx(self.model, self.joints)
 
         self.tasks = tasks
         # If needed, create a damping task to make sure joints that are not in
@@ -70,7 +71,7 @@ class MinkIKSolver(IKSolver):
             self.tasks.append(mink.DampingTask(model, cost))
 
     def solve_ik(
-        self, pose: SE3, site: str, q_init_guess: np.ndarray | None
+        self, pose: SE3, site: str, q_init_guess: np.ndarray
     ) -> list[np.ndarray]:
         end_effector_task = mink.FrameTask(
             frame_name=site,
@@ -94,7 +95,7 @@ class MinkIKSolver(IKSolver):
                 pos_achieved = np.linalg.norm(err[:3]) <= self.pos_tolerance
                 ori_achieved = np.linalg.norm(err[3:]) <= self.ori_tolerance
                 if pos_achieved and ori_achieved:
-                    if obeys_constraints(configuration.q, self.constraints):
+                    if obeys_constraints(configuration.q, self.constraints, self.q_idx):
                         return [configuration.q]
                     break
                 vel = mink.solve_ik(

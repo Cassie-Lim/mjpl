@@ -16,7 +16,7 @@ dependencies = [
   # https://github.com/hungpham2511/toppra/pull/259
   "toppra >= 0.6.3",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 authors = [
   { name="Ashton Larkin", email="" },
 ]
@@ -54,7 +54,7 @@ dev = [
 Homepage = "https://github.com/adlarkin/mjpl"
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = [

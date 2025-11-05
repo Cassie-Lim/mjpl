@@ -12,8 +12,8 @@ class ToppraTrajectoryGenerator(TrajectoryGenerator):
         dt: float,
         max_velocity: np.ndarray,
         max_acceleration: np.ndarray,
-        min_velocity: np.ndarray | None = None,
-        min_acceleration: np.ndarray | None = None,
+        min_velocity: np.ndarray = None,
+        min_acceleration: np.ndarray = None,
     ):
         """Constructor.
 
@@ -40,7 +40,7 @@ class ToppraTrajectoryGenerator(TrajectoryGenerator):
             acceleration_limits
         )
 
-    def generate_trajectory(self, waypoints: list[np.ndarray]) -> Trajectory | None:
+    def generate_trajectory(self, waypoints: list[np.ndarray]) -> Trajectory:
         instance = ta.algorithm.TOPPRA(
             constraint_list=[self.velocity_constraint, self.acceleration_constraint],
             path=ta.SplineInterpolator(np.linspace(0, 1, len(waypoints)), waypoints),

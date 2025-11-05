@@ -12,7 +12,7 @@ class IKSolver(ABC):
         self,
         pose: SE3,
         site: str,
-        q_init_guess: np.ndarray | None,
+        q_init_guess: np.ndarray,
     ) -> list[np.ndarray]:
         """Solve IK.
 

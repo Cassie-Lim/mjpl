@@ -9,7 +9,7 @@ def generate_constrained_trajectory(
     waypoints: list[np.ndarray],
     generator: TrajectoryGenerator,
     constraints: list[Constraint],
-) -> Trajectory | None:
+) -> Trajectory:
     """Generate a trajectory that follows waypoints and obeys constraints.
 
     This assumes that straight-line connections between adjacent waypoints obey the
